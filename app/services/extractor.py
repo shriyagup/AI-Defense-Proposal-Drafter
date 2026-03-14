@@ -2,9 +2,18 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import Dict, List, Optional, Union
 
 from openai import OpenAI
 from pydantic import BaseModel, ConfigDict, Field
+try:
+    from dotenv import load_dotenv
+except ImportError:  # pragma: no cover - optional dependency
+    load_dotenv = None
+
+
+if load_dotenv is not None:
+    load_dotenv()
 
 
 PROMPT_PATH = Path(__file__).resolve().parents[1] / "prompts" / "extraction_prompt.txt"
@@ -31,26 +40,26 @@ class LinkedOpportunity(BaseModel):
 class SolicitationExtraction(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    notice_id: str | None = Field(default=None)
-    title: str | None = Field(default=None)
-    agency: str | None = Field(default=None)
-    sub_agency: str | None = Field(default=None)
-    office: str | None = Field(default=None)
-    opportunity_type: str | None = Field(default=None)
-    published_date: str | None = Field(default=None, description="ISO date YYYY-MM-DD when known.")
-    offers_due_date: str | None = Field(default=None, description="ISO date YYYY-MM-DD when known.")
-    naics_code: str | None = Field(default=None)
-    psc_code: str | None = Field(default=None)
-    contract_type: str | None = Field(default=None)
-    platforms: list[str] = Field(default_factory=list)
-    platform_keywords: list[str] = Field(default_factory=list)
-    work_scope: list[str] = Field(default_factory=list)
-    technical_keywords: list[str] = Field(default_factory=list)
-    compliance_requirements: list[str] = Field(default_factory=list)
-    compliance_keywords: list[str] = Field(default_factory=list)
-    key_risks: list[str] = Field(default_factory=list)
-    risk_keywords: list[str] = Field(default_factory=list)
-    linked_opportunities: list[LinkedOpportunity] = Field(default_factory=list)
+    notice_id: Optional[str] = Field(default=None)
+    title: Optional[str] = Field(default=None)
+    agency: Optional[str] = Field(default=None)
+    sub_agency: Optional[str] = Field(default=None)
+    office: Optional[str] = Field(default=None)
+    opportunity_type: Optional[str] = Field(default=None)
+    published_date: Optional[str] = Field(default=None, description="ISO date YYYY-MM-DD when known.")
+    offers_due_date: Optional[str] = Field(default=None, description="ISO date YYYY-MM-DD when known.")
+    naics_code: Optional[str] = Field(default=None)
+    psc_code: Optional[str] = Field(default=None)
+    contract_type: Optional[str] = Field(default=None)
+    platforms: List[str] = Field(default_factory=list)
+    platform_keywords: List[str] = Field(default_factory=list)
+    work_scope: List[str] = Field(default_factory=list)
+    technical_keywords: List[str] = Field(default_factory=list)
+    compliance_requirements: List[str] = Field(default_factory=list)
+    compliance_keywords: List[str] = Field(default_factory=list)
+    key_risks: List[str] = Field(default_factory=list)
+    risk_keywords: List[str] = Field(default_factory=list)
+    linked_opportunities: List[LinkedOpportunity] = Field(default_factory=list)
 
 
 class ExtractionError(RuntimeError):
@@ -60,16 +69,16 @@ class ExtractionError(RuntimeError):
 class SolicitationExtractor:
     def __init__(
         self,
-        client: OpenAI | None = None,
-        model: str | None = None,
-        prompt_path: str | Path | None = None,
+        client: Optional[OpenAI] = None,
+        model: Optional[str] = None,
+        prompt_path: Optional[Union[str, Path]] = None,
     ) -> None:
         self.client = client or OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.model = model or os.getenv("OPENAI_EXTRACTION_MODEL", DEFAULT_EXTRACTION_MODEL)
         self.prompt_path = Path(prompt_path) if prompt_path else PROMPT_PATH
         self.instructions = self.prompt_path.read_text(encoding="utf-8").strip()
 
-    def extract(self, solicitation_text: str, source_url: str | None = None) -> SolicitationExtraction:
+    def extract(self, solicitation_text: str, source_url: Optional[str] = None) -> SolicitationExtraction:
         cleaned_text = solicitation_text.strip()
         if not cleaned_text:
             raise ValueError("solicitation_text must not be empty")
@@ -86,10 +95,10 @@ class SolicitationExtractor:
 
         raise ExtractionError(self._build_failure_message(response))
 
-    def extract_to_dict(self, solicitation_text: str, source_url: str | None = None) -> dict:
+    def extract_to_dict(self, solicitation_text: str, source_url: Optional[str] = None) -> Dict:
         return self.extract(solicitation_text=solicitation_text, source_url=source_url).model_dump()
 
-    def _build_input(self, solicitation_text: str, source_url: str | None) -> list[dict]:
+    def _build_input(self, solicitation_text: str, source_url: Optional[str]) -> List[Dict[str, str]]:
         user_message = ["Extract structured solicitation data from the text below."]
         if source_url:
             user_message.append(f"Source URL: {source_url}")
@@ -102,3 +111,8 @@ class SolicitationExtractor:
         if output_text:
             return f"OpenAI extraction did not return parsed structured data. Model output: {output_text}"
         return "OpenAI extraction did not return parsed structured data."
+
+
+def extract_solicitation_data(solicitation_text: str, source_url: Optional[str] = None) -> Dict:
+    extractor = SolicitationExtractor()
+    return extractor.extract_to_dict(solicitation_text=solicitation_text, source_url=source_url)
