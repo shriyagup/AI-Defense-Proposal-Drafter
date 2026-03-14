@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Defense Solicitation Agent</title>
+</head>
+<body>
+
+    <h2>Defense Solicitation Analyzer</h2>
+
+    <form action="/analyze" method="post">
+        <label for="url">Solicitation URL</label><br>
+        <input type="text" id="url" name="url" style="width: 700px;" value="{{ url if url else '' }}">
+        <br><br>
+
+        <label for="solicitation_text">Or paste solicitation text</label><br>
+        <textarea id="solicitation_text" name="solicitation_text" rows="18" cols="100">{{ solicitation_text if solicitation_text else '' }}</textarea>
+        <br><br>
+
+        <button type="submit">Analyze</button>
+    </form>
+
+    <hr>
+
+    {% if result %}
+        {% if result.error %}
+            <h3>Error</h3>
+            <pre>{{ result.error }}</pre>
+        {% endif %}
+
+        <h3>Input Text Used</h3>
+        <pre style="white-space: pre-wrap;">{{ result.preview_text }}</pre>
+
+        <h3>Links Found</h3>
+        <ul>
+            {% for link in result.links %}
+                <li>{{ link.text }} — {{ link.url }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+</body>
+</html>

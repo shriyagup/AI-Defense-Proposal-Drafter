@@ -1,0 +1,135 @@
+{
+  "company_name": "AeroShield Defense Systems",
+  "company_summary": "Mid-sized U.S. aerospace and defense contractor focused on military aircraft sustainment, structural repair, component overhaul, and mission-ready manufacturing support.",
+  "domains": [
+    "defense",
+    "aerospace",
+    "military aviation",
+    "sustainment",
+    "manufacturing"
+  ],
+  "domain_keywords": [
+    "defense",
+    "aerospace",
+    "military_aviation",
+    "aircraft_sustainment",
+    "manufacturing"
+  ],
+  "core_capabilities": [
+    "Airframe structural repair and overhaul",
+    "Aircraft component inspection and refurbishment",
+    "Depot-level maintenance support",
+    "Composite and metallic structure repair",
+    "Technical data review and repair planning",
+    "Low-rate aerospace manufacturing and kitting"
+  ],
+  "technical_keywords": [
+    "airframe_repair",
+    "structural_repair",
+    "component_overhaul",
+    "inspection",
+    "depot_maintenance",
+    "composite_repair",
+    "metal_fabrication",
+    "repair_planning",
+    "manufacturing",
+    "kitting"
+  ],
+  "platform_experience": [
+    "F/A-18 family support environments",
+    "Rotary-wing airframe sustainment",
+    "Trainer aircraft component maintenance",
+    "Ground support and related aerospace hardware"
+  ],
+  "platform_keywords": [
+    "fighter_aircraft",
+    "naval_aviation",
+    "rotary_wing",
+    "trainer_aircraft",
+    "aircraft_components",
+    "ground_support_equipment"
+  ],
+  "manufacturing_capabilities": [
+    "Composite layup and bonded repair",
+    "Sheet metal and machined part replacement",
+    "Tooling, fixtures, and repair kits",
+    "Technical orders execution and work package build-out"
+  ],
+  "manufacturing_keywords": [
+    "composite_repair",
+    "sheet_metal",
+    "machining",
+    "tooling",
+    "repair_kits",
+    "technical_orders"
+  ],
+  "compliance_capabilities": [
+    "AS9100-aligned quality processes",
+    "ITAR-controlled program handling",
+    "DoD supplier documentation discipline",
+    "Small business subcontracting familiarity",
+    "First article and source approval support"
+  ],
+  "compliance_keywords": [
+    "as9100",
+    "itar",
+    "dod_quality",
+    "small_business_plan",
+    "first_article_testing",
+    "source_approval"
+  ],
+  "risk_tolerances": {
+    "preferred_risk_keywords": [
+      "routine_sustainment",
+      "repeatable_repair",
+      "defined_scope"
+    ],
+    "caution_risk_keywords": [
+      "schedule_risk",
+      "supply_chain_risk",
+      "limited_data_package",
+      "qualification_risk"
+    ],
+    "high_concern_risk_keywords": [
+      "unfunded_tooling",
+      "extreme_schedule_pressure",
+      "unclear_government_furnished_property",
+      "major_compliance_burden"
+    ]
+  },
+  "past_performance": [
+    "Military aircraft structural repair support program",
+    "Fleet sustainment component refurbishment effort",
+    "Composite repair and inspection services for defense aviation customers"
+  ],
+  "differentiators": [
+    "Strong fit for sustainment-oriented work",
+    "Good alignment with aircraft repair and component overhaul",
+    "Established quality and controlled-data handling discipline"
+  ],
+  "match_targets": {
+    "naics_codes": [
+      "336413",
+      "336411",
+      "336412"
+    ],
+    "psc_codes": [
+      "1560",
+      "1680",
+      "2840",
+      "J015",
+      "J016"
+    ],
+    "opportunity_types": [
+      "Solicitation",
+      "Sources Sought",
+      "Combined Synopsis/Solicitation"
+    ],
+    "contract_types": [
+      "Firm Fixed Price",
+      "IDIQ",
+      "Requirements",
+      "Time and Materials"
+    ]
+  }
+}
