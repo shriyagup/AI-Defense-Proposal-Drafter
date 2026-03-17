@@ -36,6 +36,31 @@
                 <li>{{ link.text }} — {{ link.url }}</li>
             {% endfor %}
         </ul>
+
+        {% if result.solicitation_id %}
+            <h3>Stored Record</h3>
+            <pre>{{ result.solicitation_id }}</pre>
+        {% endif %}
+
+        {% if result.extracted %}
+            <h3>Extracted Data</h3>
+            <pre style="white-space: pre-wrap;">{{ result.extracted }}</pre>
+        {% endif %}
+
+        {% if result.match_result %}
+            <h3>Match Result</h3>
+            <pre style="white-space: pre-wrap;">{{ result.match_result }}</pre>
+        {% endif %}
+
+        {% if result.score_result %}
+            <h3>Score Result</h3>
+            <pre style="white-space: pre-wrap;">{{ result.score_result }}</pre>
+        {% endif %}
+
+        {% if result.proposal_result %}
+            <h3>Proposal Draft</h3>
+            <pre style="white-space: pre-wrap;">{{ result.proposal_result.proposal_markdown }}</pre>
+        {% endif %}
     {% endif %}
 
 </body>

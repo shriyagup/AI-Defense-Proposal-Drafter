@@ -15,9 +15,3 @@ pip install -e .
 ```bash
 uvicorn app.main:app --reload
 ```
-
-## Run migrations
-
-```bash
-alembic upgrade head
-```

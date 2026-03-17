@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional
-
-from app.services.matcher import load_contractor_profile, match_solicitation_to_profile
+from typing import Dict, List
 
 
 TECHNICAL_WEIGHT = 40
@@ -13,16 +11,9 @@ DEFAULT_BID_THRESHOLD = 50
 
 
 def score_solicitation(
-    solicitation_data: Dict,
-    contractor_profile: Optional[Dict] = None,
+    match_result: Dict,
     bid_threshold: int = DEFAULT_BID_THRESHOLD,
 ) -> Dict:
-    profile = contractor_profile or load_contractor_profile()
-    match_result = match_solicitation_to_profile(
-        solicitation_data=solicitation_data,
-        contractor_profile=profile,
-    )
-
     technical_score = _weighted_score(match_result["technical_match"]["coverage_ratio"], TECHNICAL_WEIGHT)
     platform_score = _weighted_score(match_result["platform_match"]["coverage_ratio"], PLATFORM_WEIGHT)
     compliance_score = _weighted_score(match_result["compliance_match"]["coverage_ratio"], COMPLIANCE_WEIGHT)
@@ -45,7 +36,7 @@ def score_solicitation(
         },
         "reasoning": _build_reasoning(match_result, recommendation),
         "match_result": match_result,
-        "contractor_name": profile.get("company_name"),
+        "contractor_name": match_result.get("contractor_name"),
     }
 
 

@@ -3,8 +3,10 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from app.api.routes import router
+from app.db.database import init_db
 
 app = FastAPI(title="Defense Solicitation Agent")
+init_db()
 
 app.include_router(router)
 
