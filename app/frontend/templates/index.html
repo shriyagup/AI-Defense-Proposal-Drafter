@@ -120,47 +120,37 @@
                     {% set risk_width = (risk_score / 15) * 100 %}
                     {% set code_width = (code_bonus / 5) * 100 %}
 
-                    <div class="metric-stack">
-                        <div class="metric-row">
-                            <span>Technical Capability</span>
-                            <span>{{ technical_score }}</span>
-                        </div>
-                        <div class="meter">
-                            <span style="width: {{ technical_width }}%;"></span>
-                        </div>
+                        <div class="metric-stack">
+                            <div class="metric-row">
+                                <span>Technical Capability</span>
+                                <span>{{ technical_score }}</span>
+                            </div>
+                            <progress class="meter" value="{{ technical_width }}" max="100"></progress>
 
-                        <div class="metric-row">
-                            <span>Platform Relevance</span>
-                            <span>{{ platform_score }}</span>
-                        </div>
-                        <div class="meter">
-                            <span style="width: {{ platform_width }}%;"></span>
-                        </div>
+                            <div class="metric-row">
+                                <span>Platform Relevance</span>
+                                <span>{{ platform_score }}</span>
+                            </div>
+                            <progress class="meter" value="{{ platform_width }}" max="100"></progress>
 
-                        <div class="metric-row">
-                            <span>Compliance Readiness</span>
-                            <span>{{ compliance_score }}</span>
-                        </div>
-                        <div class="meter">
-                            <span style="width: {{ compliance_width }}%;"></span>
-                        </div>
+                            <div class="metric-row">
+                                <span>Compliance Readiness</span>
+                                <span>{{ compliance_score }}</span>
+                            </div>
+                            <progress class="meter" value="{{ compliance_width }}" max="100"></progress>
 
-                        <div class="metric-row">
-                            <span>Risk Score</span>
-                            <span>{{ risk_score }}</span>
-                        </div>
-                        <div class="meter">
-                            <span style="width: {{ risk_width }}%;"></span>
-                        </div>
+                            <div class="metric-row">
+                                <span>Risk Score</span>
+                                <span>{{ risk_score }}</span>
+                            </div>
+                            <progress class="meter" value="{{ risk_width }}" max="100"></progress>
 
-                        <div class="metric-row">
-                            <span>Code Alignment Bonus</span>
-                            <span>{{ code_bonus }}</span>
+                            <div class="metric-row">
+                                <span>Code Alignment Bonus</span>
+                                <span>{{ code_bonus }}</span>
+                            </div>
+                            <progress class="meter" value="{{ code_width }}" max="100"></progress>
                         </div>
-                        <div class="meter">
-                            <span style="width: {{ code_width }}%;"></span>
-                        </div>
-                    </div>
                 </section>
                 {% endif %}
 
