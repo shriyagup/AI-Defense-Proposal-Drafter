@@ -40,6 +40,18 @@ class AnalyzeRouteTest(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(app)
 
+    def test_home_route_renders_form(self):
+        response = self.client.get("/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Paste solicitation text", response.text)
+
+    def test_analyze_route_requires_text_input(self):
+        response = self.client.post("/analyze", data={"solicitation_text": ""})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("Please paste solicitation text to analyze.", response.text)
+
     @patch("app.api.routes.update_solicitation_analysis")
     @patch("app.api.routes.generate_proposal")
     @patch("app.api.routes.score_solicitation")
@@ -172,6 +184,18 @@ class AnalyzeRouteTest(unittest.TestCase):
         mock_match.assert_called_once()
         mock_score.assert_called_once()
         mock_generate_proposal.assert_called_once()
+
+    @patch("app.api.routes.extract_solicitation_data")
+    def test_analyze_route_surfaces_processing_error(self, mock_extract):
+        mock_extract.side_effect = RuntimeError("extraction failed")
+
+        response = self.client.post(
+            "/analyze",
+            data={"solicitation_text": "Some solicitation text"},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("extraction failed", response.text)
 
 
 if __name__ == "__main__":

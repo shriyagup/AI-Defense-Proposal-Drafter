@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
 </head>
 <body>
     <main class="page-shell">
@@ -99,45 +99,69 @@
                 </section>
 
                 {% if result.score_result %}
-                    <section class="content-card">
-                        <div class="section-heading">
-                            <div>
-                                <p class="section-kicker">Score Breakdown</p>
-                                <h2>Why the score landed here</h2>
-                            </div>
+                <section class="content-card">
+                    <div class="section-heading">
+                        <div>
+                            <p class="section-kicker">Score Breakdown</p>
+                            <h2>Why the score landed here</h2>
                         </div>
-                        <div class="metric-stack">
-                            <div class="metric-row">
-                                <span>Technical Capability</span>
-                                <span>{{ result.score_result.score_breakdown.technical_capability_score }}</span>
-                            </div>
-                            <div class="meter"><span style="width: {{ (result.score_result.score_breakdown.technical_capability_score / 40 * 100) if result.score_result.score_breakdown.technical_capability_score else 0 }}%"></span></div>
+                    </div>
 
-                            <div class="metric-row">
-                                <span>Platform Relevance</span>
-                                <span>{{ result.score_result.score_breakdown.platform_relevance_score }}</span>
-                            </div>
-                            <div class="meter"><span style="width: {{ (result.score_result.score_breakdown.platform_relevance_score / 25 * 100) if result.score_result.score_breakdown.platform_relevance_score else 0 }}%"></span></div>
+                    {% set breakdown = result.score_result.score_breakdown %}
+                    {% set technical_score = breakdown.technical_capability_score if breakdown and breakdown.technical_capability_score is not none else 0 %}
+                    {% set platform_score = breakdown.platform_relevance_score if breakdown and breakdown.platform_relevance_score is not none else 0 %}
+                    {% set compliance_score = breakdown.compliance_readiness_score if breakdown and breakdown.compliance_readiness_score is not none else 0 %}
+                    {% set risk_score = breakdown.risk_score if breakdown and breakdown.risk_score is not none else 0 %}
+                    {% set code_bonus = breakdown.code_alignment_bonus if breakdown and breakdown.code_alignment_bonus is not none else 0 %}
 
-                            <div class="metric-row">
-                                <span>Compliance Readiness</span>
-                                <span>{{ result.score_result.score_breakdown.compliance_readiness_score }}</span>
-                            </div>
-                            <div class="meter"><span style="width: {{ (result.score_result.score_breakdown.compliance_readiness_score / 20 * 100) if result.score_result.score_breakdown.compliance_readiness_score else 0 }}%"></span></div>
+                    {% set technical_width = (technical_score / 40) * 100 %}
+                    {% set platform_width = (platform_score / 25) * 100 %}
+                    {% set compliance_width = (compliance_score / 20) * 100 %}
+                    {% set risk_width = (risk_score / 15) * 100 %}
+                    {% set code_width = (code_bonus / 5) * 100 %}
 
-                            <div class="metric-row">
-                                <span>Risk Score</span>
-                                <span>{{ result.score_result.score_breakdown.risk_score }}</span>
-                            </div>
-                            <div class="meter"><span style="width: {{ (result.score_result.score_breakdown.risk_score / 15 * 100) if result.score_result.score_breakdown.risk_score else 0 }}%"></span></div>
-
-                            <div class="metric-row">
-                                <span>Code Alignment Bonus</span>
-                                <span>{{ result.score_result.score_breakdown.code_alignment_bonus }}</span>
-                            </div>
-                            <div class="meter"><span style="width: {{ (result.score_result.score_breakdown.code_alignment_bonus / 5 * 100) if result.score_result.score_breakdown.code_alignment_bonus else 0 }}%"></span></div>
+                    <div class="metric-stack">
+                        <div class="metric-row">
+                            <span>Technical Capability</span>
+                            <span>{{ technical_score }}</span>
                         </div>
-                    </section>
+                        <div class="meter">
+                            <span style="width: {{ technical_width }}%;"></span>
+                        </div>
+
+                        <div class="metric-row">
+                            <span>Platform Relevance</span>
+                            <span>{{ platform_score }}</span>
+                        </div>
+                        <div class="meter">
+                            <span style="width: {{ platform_width }}%;"></span>
+                        </div>
+
+                        <div class="metric-row">
+                            <span>Compliance Readiness</span>
+                            <span>{{ compliance_score }}</span>
+                        </div>
+                        <div class="meter">
+                            <span style="width: {{ compliance_width }}%;"></span>
+                        </div>
+
+                        <div class="metric-row">
+                            <span>Risk Score</span>
+                            <span>{{ risk_score }}</span>
+                        </div>
+                        <div class="meter">
+                            <span style="width: {{ risk_width }}%;"></span>
+                        </div>
+
+                        <div class="metric-row">
+                            <span>Code Alignment Bonus</span>
+                            <span>{{ code_bonus }}</span>
+                        </div>
+                        <div class="meter">
+                            <span style="width: {{ code_width }}%;"></span>
+                        </div>
+                    </div>
+                </section>
                 {% endif %}
 
                 {% if result.extracted %}
@@ -149,7 +173,7 @@
                             </div>
                         </div>
 
-                        <div class="meta-grid meta-grid-wide">
+                        <dl class="meta-grid meta-grid-wide">
                             <div><dt>Sub-agency</dt><dd>{{ result.extracted.sub_agency or 'Not extracted' }}</dd></div>
                             <div><dt>Office</dt><dd>{{ result.extracted.office or 'Not extracted' }}</dd></div>
                             <div><dt>Opportunity Type</dt><dd>{{ result.extracted.opportunity_type or 'Not extracted' }}</dd></div>
@@ -157,7 +181,7 @@
                             <div><dt>NAICS</dt><dd>{{ result.extracted.naics_code or 'Not extracted' }}</dd></div>
                             <div><dt>PSC</dt><dd>{{ result.extracted.psc_code or 'Not extracted' }}</dd></div>
                             <div><dt>Contract Type</dt><dd>{{ result.extracted.contract_type or 'Not extracted' }}</dd></div>
-                        </div>
+                        </dl>
 
                         <div class="chip-section-grid">
                             <div>
