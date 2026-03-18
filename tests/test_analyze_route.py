@@ -51,10 +51,8 @@ class AnalyzeRouteTest(unittest.TestCase):
     @patch("app.api.routes.get_or_create_default_contractor_profile")
     @patch("app.api.routes.db_session")
     @patch("app.api.routes.extract_solicitation_data")
-    @patch("app.api.routes.scrape_solicitation")
     def test_analyze_route_renders_pipeline_output(
         self,
-        mock_scrape,
         mock_extract,
         mock_db_session,
         mock_get_profile,
@@ -67,11 +65,6 @@ class AnalyzeRouteTest(unittest.TestCase):
         mock_generate_proposal,
         mock_update_analysis,
     ):
-        mock_scrape.return_value = {
-            "raw_page_text": "Repair of F/A-18 airframe components with AS9100 compliance requirements.",
-            "preview_text": "Repair of F/A-18 airframe components",
-            "links": [{"text": "Amendment 0001", "url": "https://sam.gov/amendment-0001"}],
-        }
         mock_extract.return_value = {
             "notice_id": "N0038325RT088",
             "title": "Repair of Aircraft Structural Components",
@@ -167,7 +160,7 @@ class AnalyzeRouteTest(unittest.TestCase):
 
         response = self.client.post(
             "/analyze",
-            data={"url": "https://sam.gov/workspace/contract/opp/test-route/view"},
+            data={"solicitation_text": "Repair of F/A-18 airframe components with AS9100 compliance requirements."},
         )
 
         self.assertEqual(response.status_code, 200)
@@ -175,7 +168,6 @@ class AnalyzeRouteTest(unittest.TestCase):
         self.assertIn("AeroShield Defense Systems", response.text)
         self.assertIn("BID", response.text)
         self.assertIn("Draft Proposal", response.text)
-        mock_scrape.assert_called_once()
         mock_extract.assert_called_once()
         mock_match.assert_called_once()
         mock_score.assert_called_once()

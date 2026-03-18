@@ -20,7 +20,6 @@ from app.services.extractor import extract_solicitation_data
 from app.services.matcher import match_solicitation_to_profile
 from app.services.proposal_generator import generate_proposal
 from app.services.scorer import score_solicitation
-from app.services.scraper import scrape_solicitation
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/frontend/templates")
@@ -33,7 +32,6 @@ async def home(request: Request):
         {
             "request": request,
             "result": None,
-            "url": "",
             "solicitation_text": ""
         }
     )
@@ -42,7 +40,6 @@ async def home(request: Request):
 @router.post("/analyze", response_class=HTMLResponse)
 async def analyze(
     request: Request,
-    url: str = Form(""),
     solicitation_text: str = Form("")
 ):
     used_text = ""
@@ -57,19 +54,14 @@ async def analyze(
 
     if solicitation_text.strip():
         used_text = solicitation_text.strip()
-    elif url.strip():
-        scrape_result = scrape_solicitation(url.strip())
-        used_text = scrape_result.get("raw_page_text", "") or scrape_result.get("preview_text", "")
-        links = scrape_result.get("links", [])
-        error = scrape_result.get("error")
     else:
-        error = "Please provide either a URL or pasted solicitation text."
+        error = "Please paste solicitation text to analyze."
 
     if not error and used_text.strip():
         try:
-            source_url = url.strip() or "manual://submission/" + datetime.utcnow().strftime("%Y%m%d%H%M%S%f")
+            source_url = "manual://submission/" + datetime.utcnow().strftime("%Y%m%d%H%M%S%f")
             extracted = SolicitationExtractionSchema.model_validate(
-                extract_solicitation_data(used_text, source_url=url.strip() or None)
+                extract_solicitation_data(used_text, source_url=None)
             )
 
             with db_session() as db:
@@ -136,7 +128,6 @@ async def analyze(
         {
             "request": request,
             "result": result,
-            "url": url,
             "solicitation_text": solicitation_text
         }
     )

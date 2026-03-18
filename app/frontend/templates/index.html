@@ -1,67 +1,351 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Defense Solicitation Agent</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', path='styles.css') }}">
 </head>
 <body>
+    <main class="page-shell">
+        <section class="hero">
+            <div class="hero-copy">
+                <p class="eyebrow">Text-Only Review</p>
+                <h1>Paste solicitation text</h1>
+                <p class="hero-subtitle">
+                    This tool helps you review a defense solicitation faster by turning pasted solicitation text into a structured summary, fit assessment, and draft proposal. It highlights key requirements, risks, and alignment with your contractor profile so you can make bid decisions more quickly and start from a stronger first draft.
+                </p>
+            </div>
 
-    <h2>Defense Solicitation Analyzer</h2>
+            <form action="/analyze" method="post" class="analysis-form">
+                <label class="sr-only" for="solicitation_text">Paste solicitation text</label>
+                <textarea
+                    id="solicitation_text"
+                    name="solicitation_text"
+                    rows="18"
+                    class="solicitation-input"
+                    placeholder="Paste the solicitation text here..."
+                >{{ solicitation_text if solicitation_text else '' }}</textarea>
+                <div class="form-actions">
+                    <button type="submit" class="primary-button">Analyze Text</button>
+                </div>
+            </form>
+        </section>
 
-    <form action="/analyze" method="post">
-        <label for="url">Solicitation URL</label><br>
-        <input type="text" id="url" name="url" style="width: 700px;" value="{{ url if url else '' }}">
-        <br><br>
+        {% if result %}
+            {% if result.error %}
+                <section class="alert-card">
+                    <p class="section-kicker">Error</p>
+                    <pre class="alert-message">{{ result.error }}</pre>
+                </section>
+            {% endif %}
 
-        <label for="solicitation_text">Or paste solicitation text</label><br>
-        <textarea id="solicitation_text" name="solicitation_text" rows="18" cols="100">{{ solicitation_text if solicitation_text else '' }}</textarea>
-        <br><br>
+            {% if not result.error %}
+                <section class="summary-grid">
+                    <article class="summary-card summary-card-primary">
+                        <p class="section-kicker">Recommendation</p>
+                        <div class="decision-row">
+                            <span class="decision-pill decision-pill-{{ (result.score_result.recommendation if result.score_result else 'unknown') | lower | replace(' ', '-') }}">
+                                {{ result.score_result.recommendation if result.score_result else 'Pending' }}
+                            </span>
+                            <div class="score-stack">
+                                <span class="score-value">{{ result.score_result.fit_score if result.score_result else '0' }}</span>
+                                <span class="score-label">Fit score</span>
+                            </div>
+                        </div>
+                        {% if result.score_result and result.score_result.reasoning %}
+                            <ul class="clean-list compact-list">
+                                {% for item in result.score_result.reasoning[:3] %}
+                                    <li>{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+                    </article>
 
-        <button type="submit">Analyze</button>
-    </form>
+                    <article class="summary-card">
+                        <p class="section-kicker">Solicitation Snapshot</p>
+                        <dl class="meta-grid">
+                            <div>
+                                <dt>Title</dt>
+                                <dd>{{ result.extracted.title if result.extracted and result.extracted.title else 'Not extracted' }}</dd>
+                            </div>
+                            <div>
+                                <dt>Notice ID</dt>
+                                <dd>{{ result.extracted.notice_id if result.extracted and result.extracted.notice_id else 'Not extracted' }}</dd>
+                            </div>
+                            <div>
+                                <dt>Agency</dt>
+                                <dd>{{ result.extracted.agency if result.extracted and result.extracted.agency else 'Not extracted' }}</dd>
+                            </div>
+                            <div>
+                                <dt>Due Date</dt>
+                                <dd>{{ result.extracted.offers_due_date if result.extracted and result.extracted.offers_due_date else 'Not extracted' }}</dd>
+                            </div>
+                            {% if result.solicitation_id %}
+                                <div>
+                                    <dt>Record ID</dt>
+                                    <dd>#{{ result.solicitation_id }}</dd>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <dt>Contractor</dt>
+                                <dd>{{ result.match_result.contractor_name if result.match_result and result.match_result.contractor_name else 'Default profile' }}</dd>
+                            </div>
+                        </dl>
+                    </article>
+                </section>
 
-    <hr>
+                {% if result.score_result %}
+                    <section class="content-card">
+                        <div class="section-heading">
+                            <div>
+                                <p class="section-kicker">Score Breakdown</p>
+                                <h2>Why the score landed here</h2>
+                            </div>
+                        </div>
+                        <div class="metric-stack">
+                            <div class="metric-row">
+                                <span>Technical Capability</span>
+                                <span>{{ result.score_result.score_breakdown.technical_capability_score }}</span>
+                            </div>
+                            <div class="meter"><span style="width: {{ (result.score_result.score_breakdown.technical_capability_score / 40 * 100) if result.score_result.score_breakdown.technical_capability_score else 0 }}%"></span></div>
 
-    {% if result %}
-        {% if result.error %}
-            <h3>Error</h3>
-            <pre>{{ result.error }}</pre>
+                            <div class="metric-row">
+                                <span>Platform Relevance</span>
+                                <span>{{ result.score_result.score_breakdown.platform_relevance_score }}</span>
+                            </div>
+                            <div class="meter"><span style="width: {{ (result.score_result.score_breakdown.platform_relevance_score / 25 * 100) if result.score_result.score_breakdown.platform_relevance_score else 0 }}%"></span></div>
+
+                            <div class="metric-row">
+                                <span>Compliance Readiness</span>
+                                <span>{{ result.score_result.score_breakdown.compliance_readiness_score }}</span>
+                            </div>
+                            <div class="meter"><span style="width: {{ (result.score_result.score_breakdown.compliance_readiness_score / 20 * 100) if result.score_result.score_breakdown.compliance_readiness_score else 0 }}%"></span></div>
+
+                            <div class="metric-row">
+                                <span>Risk Score</span>
+                                <span>{{ result.score_result.score_breakdown.risk_score }}</span>
+                            </div>
+                            <div class="meter"><span style="width: {{ (result.score_result.score_breakdown.risk_score / 15 * 100) if result.score_result.score_breakdown.risk_score else 0 }}%"></span></div>
+
+                            <div class="metric-row">
+                                <span>Code Alignment Bonus</span>
+                                <span>{{ result.score_result.score_breakdown.code_alignment_bonus }}</span>
+                            </div>
+                            <div class="meter"><span style="width: {{ (result.score_result.score_breakdown.code_alignment_bonus / 5 * 100) if result.score_result.score_breakdown.code_alignment_bonus else 0 }}%"></span></div>
+                        </div>
+                    </section>
+                {% endif %}
+
+                {% if result.extracted %}
+                    <section class="content-card">
+                        <div class="section-heading">
+                            <div>
+                                <p class="section-kicker">Extracted Fields</p>
+                                <h2>Structured summary</h2>
+                            </div>
+                        </div>
+
+                        <div class="meta-grid meta-grid-wide">
+                            <div><dt>Sub-agency</dt><dd>{{ result.extracted.sub_agency or 'Not extracted' }}</dd></div>
+                            <div><dt>Office</dt><dd>{{ result.extracted.office or 'Not extracted' }}</dd></div>
+                            <div><dt>Opportunity Type</dt><dd>{{ result.extracted.opportunity_type or 'Not extracted' }}</dd></div>
+                            <div><dt>Published</dt><dd>{{ result.extracted.published_date or 'Not extracted' }}</dd></div>
+                            <div><dt>NAICS</dt><dd>{{ result.extracted.naics_code or 'Not extracted' }}</dd></div>
+                            <div><dt>PSC</dt><dd>{{ result.extracted.psc_code or 'Not extracted' }}</dd></div>
+                            <div><dt>Contract Type</dt><dd>{{ result.extracted.contract_type or 'Not extracted' }}</dd></div>
+                        </div>
+
+                        <div class="chip-section-grid">
+                            <div>
+                                <h3>Platforms</h3>
+                                <div class="chip-cloud">
+                                    {% for item in result.extracted.platforms %}
+                                        <span class="chip">{{ item }}</span>
+                                    {% else %}
+                                        <span class="chip chip-muted">None identified</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3>Technical Keywords</h3>
+                                <div class="chip-cloud">
+                                    {% for item in result.extracted.technical_keywords %}
+                                        <span class="chip">{{ item }}</span>
+                                    {% else %}
+                                        <span class="chip chip-muted">None identified</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3>Compliance Requirements</h3>
+                                <ul class="clean-list">
+                                    {% for item in result.extracted.compliance_requirements %}
+                                        <li>{{ item }}</li>
+                                    {% else %}
+                                        <li>No compliance requirements extracted.</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+
+                            <div>
+                                <h3>Risks</h3>
+                                <div class="chip-cloud">
+                                    {% for item in result.extracted.risk_keywords %}
+                                        <span class="chip chip-warn">{{ item }}</span>
+                                    {% else %}
+                                        <span class="chip chip-muted">No risks identified</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                {% endif %}
+
+                {% if result.match_result %}
+                    <section class="content-card">
+                        <div class="section-heading">
+                            <div>
+                                <p class="section-kicker">Profile Match</p>
+                                <h2>Capability alignment</h2>
+                            </div>
+                        </div>
+
+                        <div class="match-grid">
+                            <article class="match-card">
+                                <h3>Technical</h3>
+                                <p class="coverage">{{ (result.match_result.technical_match.coverage_ratio * 100) | round(0) }}% coverage</p>
+                                <p class="label">Matched</p>
+                                <div class="chip-cloud">
+                                    {% for item in result.match_result.technical_match.matched_keywords %}
+                                        <span class="chip chip-good">{{ item }}</span>
+                                    {% else %}
+                                        <span class="chip chip-muted">No matches</span>
+                                    {% endfor %}
+                                </div>
+                                <p class="label">Missing</p>
+                                <div class="chip-cloud">
+                                    {% for item in result.match_result.technical_match.missing_keywords %}
+                                        <span class="chip chip-bad">{{ item }}</span>
+                                    {% else %}
+                                        <span class="chip chip-muted">No gaps</span>
+                                    {% endfor %}
+                                </div>
+                            </article>
+
+                            <article class="match-card">
+                                <h3>Platform</h3>
+                                <p class="coverage">{{ (result.match_result.platform_match.coverage_ratio * 100) | round(0) }}% coverage</p>
+                                <p class="label">Matched</p>
+                                <div class="chip-cloud">
+                                    {% for item in result.match_result.platform_match.matched_keywords %}
+                                        <span class="chip chip-good">{{ item }}</span>
+                                    {% else %}
+                                        <span class="chip chip-muted">No matches</span>
+                                    {% endfor %}
+                                </div>
+                                <p class="label">Missing</p>
+                                <div class="chip-cloud">
+                                    {% for item in result.match_result.platform_match.missing_keywords %}
+                                        <span class="chip chip-bad">{{ item }}</span>
+                                    {% else %}
+                                        <span class="chip chip-muted">No gaps</span>
+                                    {% endfor %}
+                                </div>
+                            </article>
+
+                            <article class="match-card">
+                                <h3>Compliance</h3>
+                                <p class="coverage">{{ (result.match_result.compliance_match.coverage_ratio * 100) | round(0) }}% coverage</p>
+                                <p class="label">Matched</p>
+                                <div class="chip-cloud">
+                                    {% for item in result.match_result.compliance_match.matched_keywords %}
+                                        <span class="chip chip-good">{{ item }}</span>
+                                    {% else %}
+                                        <span class="chip chip-muted">No matches</span>
+                                    {% endfor %}
+                                </div>
+                                <p class="label">Missing</p>
+                                <div class="chip-cloud">
+                                    {% for item in result.match_result.compliance_match.missing_keywords %}
+                                        <span class="chip chip-bad">{{ item }}</span>
+                                    {% else %}
+                                        <span class="chip chip-muted">No gaps</span>
+                                    {% endfor %}
+                                </div>
+                            </article>
+                        </div>
+
+                        <div class="chip-section-grid">
+                            <div>
+                                <h3>Risk Assessment</h3>
+                                <div class="chip-cloud">
+                                    {% for item in result.match_result.risk_assessment.caution_risks %}
+                                        <span class="chip chip-warn">{{ item }}</span>
+                                    {% endfor %}
+                                    {% for item in result.match_result.risk_assessment.high_concern_risks %}
+                                        <span class="chip chip-bad">{{ item }}</span>
+                                    {% endfor %}
+                                    {% for item in result.match_result.risk_assessment.preferred_risks %}
+                                        <span class="chip chip-good">{{ item }}</span>
+                                    {% endfor %}
+                                    {% if not result.match_result.risk_assessment.caution_risks and not result.match_result.risk_assessment.high_concern_risks and not result.match_result.risk_assessment.preferred_risks %}
+                                        <span class="chip chip-muted">No notable risk categorization</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3>Match Summary</h3>
+                                <ul class="clean-list">
+                                    {% for item in result.match_result.match_summary %}
+                                        <li>{{ item }}</li>
+                                    {% else %}
+                                        <li>No summary generated.</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </section>
+                {% endif %}
+
+                {% if result.proposal_result %}
+                    <section class="content-card">
+                        <div class="section-heading">
+                            <div>
+                                <p class="section-kicker">Draft</p>
+                                <h2>Proposal output</h2>
+                            </div>
+                            <span class="meta-badge">{{ result.proposal_result.model }}</span>
+                        </div>
+                        <pre class="proposal-output">{{ result.proposal_result.proposal_markdown }}</pre>
+                    </section>
+                {% endif %}
+
+                <section class="content-card">
+                    <details class="details-panel">
+                        <summary>View raw input text</summary>
+                        <pre class="raw-output">{{ result.preview_text }}</pre>
+                    </details>
+
+                    {% if result.links %}
+                        <details class="details-panel">
+                            <summary>View extracted links</summary>
+                            <ul class="clean-list">
+                                {% for link in result.links %}
+                                    <li>{{ link.text }} <span class="muted">{{ link.url }}</span></li>
+                                {% endfor %}
+                            </ul>
+                        </details>
+                    {% endif %}
+                </section>
+            {% endif %}
         {% endif %}
-
-        <h3>Input Text Used</h3>
-        <pre style="white-space: pre-wrap;">{{ result.preview_text }}</pre>
-
-        <h3>Links Found</h3>
-        <ul>
-            {% for link in result.links %}
-                <li>{{ link.text }} — {{ link.url }}</li>
-            {% endfor %}
-        </ul>
-
-        {% if result.solicitation_id %}
-            <h3>Stored Record</h3>
-            <pre>{{ result.solicitation_id }}</pre>
-        {% endif %}
-
-        {% if result.extracted %}
-            <h3>Extracted Data</h3>
-            <pre style="white-space: pre-wrap;">{{ result.extracted }}</pre>
-        {% endif %}
-
-        {% if result.match_result %}
-            <h3>Match Result</h3>
-            <pre style="white-space: pre-wrap;">{{ result.match_result }}</pre>
-        {% endif %}
-
-        {% if result.score_result %}
-            <h3>Score Result</h3>
-            <pre style="white-space: pre-wrap;">{{ result.score_result }}</pre>
-        {% endif %}
-
-        {% if result.proposal_result %}
-            <h3>Proposal Draft</h3>
-            <pre style="white-space: pre-wrap;">{{ result.proposal_result.proposal_markdown }}</pre>
-        {% endif %}
-    {% endif %}
-
+    </main>
 </body>
 </html>
