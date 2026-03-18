@@ -83,6 +83,7 @@ class SolicitationExtractor:
         if not cleaned_text:
             raise ValueError("solicitation_text must not be empty")
 
+        # Let the model return directly into the schema we want to use everywhere else.
         response = self.client.responses.parse(
             model=self.model,
             instructions=self.instructions,
@@ -114,5 +115,6 @@ class SolicitationExtractor:
 
 
 def extract_solicitation_data(solicitation_text: str, source_url: Optional[str] = None) -> Dict:
+    # Thin wrapper so the route does not need to know about the extractor class details.
     extractor = SolicitationExtractor()
     return extractor.extract_to_dict(solicitation_text=solicitation_text, source_url=source_url)

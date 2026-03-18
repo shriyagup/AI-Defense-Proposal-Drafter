@@ -116,6 +116,7 @@ class ProposalGenerator:
         contractor_profile: Optional[Dict] = None,
     ) -> Dict:
         profile = contractor_profile or load_contractor_profile()
+        # First get the narrative blocks from the model, then drop them into the markdown template.
         narrative = self._generate_narrative(
             solicitation_data=solicitation_data,
             score_result=score_result,
@@ -168,6 +169,7 @@ class ProposalGenerator:
         match_result: Dict,
         contractor_profile: Dict,
     ) -> str:
+        # Give the model the same structured picture the rest of the app is using.
         payload = {
             "solicitation_data": solicitation_data,
             "score_result": score_result,
@@ -217,6 +219,7 @@ class ProposalGenerator:
             }
         )
 
+        # Fill in a few sections from the deterministic match data if the model leaves them vague.
         if not context["capability_alignment"] or context["capability_alignment"] == "TBD":
             context["capability_alignment"] = self._bullet_list(
                 match_result.get("technical_match", {}).get("matched_keywords", [])
@@ -240,6 +243,7 @@ class ProposalGenerator:
         for key, value in context.items():
             rendered = rendered.replace("{{" + key + "}}", str(value))
 
+        # Anything still unresolved in the template falls back to TBD instead of leaking placeholders.
         return re.sub(r"{{[^{}]+}}", "TBD", rendered)
 
     def _format_bid_recommendation(self, score_result: Dict) -> str:
@@ -268,6 +272,7 @@ def generate_proposal(
     match_result: Dict,
     contractor_profile: Optional[Dict] = None,
 ) -> Dict:
+    # Matching the extractor wrapper keeps the route code pretty small.
     generator = ProposalGenerator()
     return generator.generate(
         solicitation_data=solicitation_data,

@@ -26,6 +26,7 @@ def db_session():
     db = SessionLocal()
     try:
         yield db
+        # The CRUD helpers do their own commits too, but this keeps the session wrapper safe by default.
         db.commit()
     except Exception:
         db.rollback()
@@ -37,4 +38,5 @@ def db_session():
 def init_db():
     from app.db.models import ContractorProfile, Solicitation, SolicitationLink
 
+    # Pull table metadata from the ORM models and create anything missing.
     Base.metadata.create_all(bind=engine)

@@ -20,6 +20,7 @@ def match_solicitation_to_profile(
 ) -> Dict:
     profile = contractor_profile or load_contractor_profile()
 
+    # Normalize both sides into lowercase keyword sets before comparing anything.
     solicitation_platforms = _keyword_set(solicitation_data.get("platform_keywords", []))
     solicitation_technical = _keyword_set(solicitation_data.get("technical_keywords", []))
     solicitation_compliance = _keyword_set(solicitation_data.get("compliance_keywords", []))
@@ -67,6 +68,7 @@ def _build_overlap_result(required: Set[str], available: Set[str]) -> Dict:
     matched = sorted(required & available)
     missing = sorted(required - available)
     available_sorted = sorted(available)
+    # Empty requirements count as full coverage so they do not drag the score down.
     coverage_ratio = 1.0 if not required else round(len(matched) / len(required), 4)
 
     return {
@@ -93,6 +95,7 @@ def _build_risk_result(risk_keywords: Set[str], risk_tolerances: Dict) -> Dict:
 
 
 def _build_code_alignment(solicitation_data: Dict, match_targets: Dict) -> Dict:
+    # Codes are handled separately from keywords so the score can award a small bonus for a strong market fit.
     naics_code = (solicitation_data.get("naics_code") or "").strip()
     psc_code = _normalize_psc_code(solicitation_data.get("psc_code"))
     opportunity_type = (solicitation_data.get("opportunity_type") or "").strip()

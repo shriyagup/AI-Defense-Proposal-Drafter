@@ -23,6 +23,7 @@ def create_solicitation(db: Session, url: str, raw_page_text: str = "") -> Solic
     solicitation = Solicitation(url=url, raw_page_text=raw_page_text)
     db.add(solicitation)
     db.commit()
+    # Refresh so callers immediately get the generated primary key.
     db.refresh(solicitation)
     return solicitation
 
@@ -33,6 +34,7 @@ def update_solicitation_extraction(
     solicitation_data: Dict,
     raw_page_text: Optional[str] = None,
 ) -> Solicitation:
+    # This stores the normalized extraction fields plus the raw JSON payload for later inspection.
     solicitation.notice_id = solicitation_data.get("notice_id")
     solicitation.title = solicitation_data.get("title")
     solicitation.agency = solicitation_data.get("agency")
@@ -73,6 +75,7 @@ def update_solicitation_analysis(
 
 
 def replace_solicitation_links(db: Session, solicitation: Solicitation, links: List[Dict]) -> List[SolicitationLink]:
+    # Replace all links in one shot so reruns do not keep appending duplicates.
     db.query(SolicitationLink).filter(SolicitationLink.solicitation_id == solicitation.id).delete()
 
     link_rows = []
@@ -112,6 +115,7 @@ def get_or_create_default_contractor_profile(db: Session) -> ContractorProfile:
     with CONTRACTOR_PROFILE_PATH.open("r", encoding="utf-8") as file_obj:
         profile_data = json.load(file_obj)
 
+    # The app currently assumes one default profile, so seed it lazily on first use.
     existing = get_contractor_profile(db, profile_data["company_name"])
     if existing:
         return existing

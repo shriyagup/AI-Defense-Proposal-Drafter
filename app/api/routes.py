@@ -42,6 +42,7 @@ async def analyze(
     request: Request,
     solicitation_text: str = Form("")
 ):
+    # Keep these separate so the template can still render partial output on failures.
     used_text = ""
     links = []
     error = None
@@ -70,6 +71,7 @@ async def analyze(
                 if solicitation_record is None:
                     solicitation_record = create_solicitation(db, url=source_url, raw_page_text=used_text)
 
+                # Save the structured extraction before scoring so the database has the raw analysis trail.
                 solicitation_record = update_solicitation_extraction(
                     db=db,
                     solicitation=solicitation_record,
@@ -77,6 +79,7 @@ async def analyze(
                     raw_page_text=used_text,
                 )
 
+                # These come from the extraction output now that scraping is gone.
                 stored_links = links or [
                     {
                         "link_text": item.link_text,
@@ -87,6 +90,7 @@ async def analyze(
                 ]
                 replace_solicitation_links(db, solicitation_record, stored_links)
 
+                # The rest of the pipeline is just match -> score -> proposal in order.
                 match_result = MatchResultSchema.model_validate(match_solicitation_to_profile(
                     solicitation_data=extracted.model_dump(),
                     contractor_profile=contractor_profile,
@@ -110,6 +114,7 @@ async def analyze(
                 )
                 solicitation_id = solicitation_record.id
         except Exception as exc:
+            # Surface the message in the UI for now instead of hiding it behind a generic 500.
             error = str(exc)
 
     result = AnalyzeResponseSchema(

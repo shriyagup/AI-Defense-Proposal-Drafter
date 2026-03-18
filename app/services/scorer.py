@@ -14,6 +14,7 @@ def score_solicitation(
     match_result: Dict,
     bid_threshold: int = DEFAULT_BID_THRESHOLD,
 ) -> Dict:
+    # Each bucket stays separate so the UI can show where the score came from.
     technical_score = _weighted_score(match_result["technical_match"]["coverage_ratio"], TECHNICAL_WEIGHT)
     platform_score = _weighted_score(match_result["platform_match"]["coverage_ratio"], PLATFORM_WEIGHT)
     compliance_score = _weighted_score(match_result["compliance_match"]["coverage_ratio"], COMPLIANCE_WEIGHT)
@@ -52,6 +53,7 @@ def _risk_score(risk_assessment: Dict) -> float:
     unknown_penalty = 2.0 * len(risk_assessment.get("unknown_risks", []))
     preferred_bonus = 1.5 * len(risk_assessment.get("preferred_risks", []))
 
+    # Keep the risk bucket between 0 and the max weight even if the penalties stack up.
     return max(0.0, min(float(RISK_WEIGHT), base - caution_penalty - high_concern_penalty - unknown_penalty + preferred_bonus))
 
 

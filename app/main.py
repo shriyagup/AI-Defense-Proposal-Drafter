@@ -6,6 +6,7 @@ from app.api.routes import router
 from app.db.database import init_db
 
 app = FastAPI(title="Defense Solicitation Agent")
+# Make sure the local tables exist as soon as the app boots.
 init_db()
 
 app.include_router(router)
